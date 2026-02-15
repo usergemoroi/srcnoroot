@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2M - GUI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Floating Menu Button */
+        .menu-btn {
+            position: fixed;
+            top: 100px;
+            left: 50px;
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-btn:hover {
+            background: rgba(40, 40, 40, 0.9);
+            border-color: #666;
+        }
+
+        .menu-btn.dragging {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        /* Main Menu Container */
+        .menu-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 380px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .menu-container.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Menu Header */
+        .menu-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .menu-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .menu-subtitle {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        /* Separator Line */
+        .separator {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #444, transparent);
+            margin: 15px 0;
+        }
+
+        /* Section Headers */
+        .section-header {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 15px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-header::before {
+            content: '';
+            width: 4px;
+            height: 12px;
+            background: #00ff88;
+            border-radius: 2px;
+        }
+
+        .section-header.aimbot::before {
+            background: #ff4757;
+        }
+
+        /* Checkbox Styles */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 6px;
+            padding-left: 10px;
+        }
+
+        .checkbox-wrapper:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            display: none;
+        }
+
+        .custom-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #555;
+            border-radius: 4px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .checkbox-wrapper input[type="checkbox"]:checked + .custom-checkbox {
+            background: #00ff88;
+            border-color: #00ff88;
+        }
+
+        .checkbox-wrapper.aimbot-item input[type="checkbox"]:checked + .custom-checkbox {
+            background: #ff4757;
+            border-color: #ff4757;
+        }
+
+        .custom-checkbox::after {
+            content: '✓';
+            color: #000;
+            font-size: 14px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .checkbox-wrapper input[type="checkbox"]:checked + .custom-checkbox::after {
+            opacity: 1;
+        }
+
+        .checkbox-label {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .checkbox-desc {
+            font-size: 11px;
+            color: #666;
+            margin-left: auto;
+        }
+
+        /* Slider Styles */
+        .slider-wrapper {
+            padding: 15px 10px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            color: #fff;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .slider-value {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .slider-container {
+            position: relative;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+        }
+
+        .slider-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00cc6a);
+            border-radius: 3px;
+            transition: width 0.1s;
+        }
+
+        .slider-container.aimbot-slider .slider-fill {
+            background: linear-gradient(90deg, #ff4757, #cc3845);
+        }
+
+        .slider-container.aimbot-slider .slider-value {
+            color: #ff4757;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: transparent;
+            appearance: none;
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+            margin-top: -6px;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 6px;
+            background: transparent;
+        }
+
+        /* Close Button */
+        .close-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #333, #222);
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: linear-gradient(135deg, #444, #333);
+            border-color: #666;
+        }
+
+        /* Grid Layout for Options */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        /* Status Indicator */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            margin-top: 15px;
+            border-top: 1px solid #333;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #333;
+        }
+
+        .status-dot.active {
+            background: #00ff88;
+            box-shadow: 0 0 6px #00ff88;
+        }
+
+        /* Animation for menu open */
+        @keyframes menuPop {
+            0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .menu-container.visible {
+            animation: menuPop 0.2s ease-out;
+        }
+
+        /* Glow effect for active items */
+        .checkbox-wrapper input[type="checkbox"]:checked ~ .checkbox-label {
+            color: #00ff88;
+        }
+
+        .checkbox-wrapper.aimbot-item input[type="checkbox"]:checked ~ .checkbox-label {
+            color: #ff4757;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Menu Button -->
+    <button class="menu-btn" id="menuBtn">M</button>
+
+    <!-- Main Menu -->
+    <div class="menu-container" id="menuContainer">
+        <div class="menu-header">
+            <div class="menu-title">S2M</div>
+            <div class="menu-subtitle">System Module</div>
+        </div>
+
+        <div class="separator"></div>
+
+        <!-- ESP Section -->
+        <div class="section-header">ESP</div>
+        
+        <label class="checkbox-wrapper">
+            <input type="checkbox" id="espEnabled" onchange="updateConfig('esp_enabled', this.checked)">
+            <span class="custom-checkbox"></span>
+            <span class="checkbox-label">Enable ESP</span>
+            <span class="checkbox-desc">E</span>
+        </label>
+
+        <div class="options-grid">
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="espBox" onchange="updateConfig('esp_box', this.checked)">
+                <span class="custom-checkbox"></span>
+                <span class="checkbox-label">Box</span>
+                <span class="checkbox-desc">B</span>
+            </label>
+
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="espSkeleton" onchange="updateConfig('esp_skeleton', this.checked)">
+                <span class="custom-checkbox"></span>
+                <span class="checkbox-label">Skeleton</span>
+                <span class="checkbox-desc">S</span>
+            </label>
+
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="espHealth" onchange="updateConfig('esp_health', this.checked)">
+                <span class="custom-checkbox"></span>
+                <span class="checkbox-label">Health</span>
+                <span class="checkbox-desc">HP</span>
+            </label>
+
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="espDistance" onchange="updateConfig('esp_distance', this.checked)">
+                <span class="custom-checkbox"></span>
+                <span class="checkbox-label">Distance</span>
+                <span class="checkbox-desc">M</span>
+            </label>
+
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="espName" onchange="updateConfig('esp_name', this.checked)">
+                <span class="custom-checkbox"></span>
+                <span class="checkbox-label">Name</span>
+                <span class="checkbox-desc">ID</span>
+            </label>
+        </div>
+
+        <div class="separator"></div>
+
+        <!-- Aimbot Section -->
+        <div class="section-header aimbot">Aimbot</div>
+
+        <label class="checkbox-wrapper aimbot-item">
+            <input type="checkbox" id="aimbotEnabled" onchange="updateConfig('aimbot_enabled', this.checked)">
+            <span class="custom-checkbox"></span>
+            <span class="checkbox-label">Enable Aimbot</span>
+            <span class="checkbox-desc">A</span>
+        </label>
+
+        <div class="options-grid">
+            <label class="checkbox-wrapper aimbot-item">
+                <input type="checkbox" id="aimbotVisible" checked onchange="updateConfig('aimbot_visible_only', this.checked)">
+                <span class="custom-checkbox"></span>
+                <span class="checkbox-label">Visible Only</span>
+            </label>
+
+            <label class="checkbox-wrapper aimbot-item">
+                <input type="checkbox" id="aimbotTeam" checked onchange="updateConfig('aimbot_team_check', this.checked)">
+                <span class="custom-checkbox"></span>
+                <span class="checkbox-label">Team Check</span>
+            </label>
+        </div>
+
+        <!-- FOV Slider -->
+        <div class="slider-wrapper">
+            <div class="slider-label">
+                <span>FOV</span>
+                <span class="slider-value" id="fovValue">90°</span>
+            </div>
+            <div class="slider-container aimbot-slider">
+                <div class="slider-fill" id="fovFill" style="width: 47%"></div>
+                <input type="range" min="10" max="180" value="90" id="fovSlider" oninput="updateSlider('aimbot_fov', this.value, 'fovValue', 'fovFill', '°')">
+            </div>
+        </div>
+
+        <!-- Smooth Slider -->
+        <div class="slider-wrapper">
+            <div class="slider-label">
+                <span>Smooth</span>
+                <span class="slider-value" id="smoothValue">5.0</span>
+            </div>
+            <div class="slider-container aimbot-slider">
+                <div class="slider-fill" id="smoothFill" style="width: 25%"></div>
+                <input type="range" min="1" max="20" step="0.1" value="5" id="smoothSlider" oninput="updateSlider('aimbot_smooth', this.value, 'smoothValue', 'smoothFill', '')">
+            </div>
+        </div>
+
+        <div class="separator"></div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot" id="espStatus"></div>
+                <span>ESP</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot" id="aimbotStatus"></div>
+                <span>Aim</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot active" id="menuStatus"></div>
+                <span>Menu</span>
+            </div>
+        </div>
+
+        <button class="close-btn" onclick="toggleMenu()">X CLOSE</button>
+    </div>
+
+    <script>
+        // Config matching C++ ModConfig structure
+        const config = {
+            esp_enabled: false,
+            esp_skeleton: false,
+            esp_box: false,
+            esp_distance: false,
+            esp_health: false,
+            esp_name: false,
+            aimbot_enabled: false,
+            aimbot_visible_only: true,
+            aimbot_team_check: true,
+            aimbot_fov: 90.0,
+            aimbot_smooth: 5.0,
+            menu_visible: true
+        };
+
+        // Menu Toggle
+        const menuBtn = document.getElementById('menuBtn');
+        const menuContainer = document.getElementById('menuContainer');
+        
+        function toggleMenu() {
+            config.menu_visible = !config.menu_visible;
+            menuContainer.classList.toggle('visible', config.menu_visible);
+            updateStatus('menuStatus', config.menu_visible);
+            console.log('Menu toggled:', config.menu_visible);
+        }
+
+        menuBtn.addEventListener('click', toggleMenu);
+
+        // Drag functionality for menu button
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+
+        menuBtn.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialX = menuBtn.offsetLeft;
+            initialY = menuBtn.offsetTop;
+            menuBtn.classList.add('dragging');
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            menuBtn.style.left = (initialX + dx) + 'px';
+            menuBtn.style.top = (initialY + dy) + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            menuBtn.classList.remove('dragging');
+        });
+
+        // Update config
+        function updateConfig(key, value) {
+            config[key] = value;
+            
+            // Update status indicators
+            if (key === 'esp_enabled') {
+                updateStatus('espStatus', value);
+            } else if (key === 'aimbot_enabled') {
+                updateStatus('aimbotStatus', value);
+            }
+            
+            console.log('Config updated:', key, '=', value);
+            console.log('Full config:', config);
+        }
+
+        // Update slider
+        function updateSlider(key, value, valueId, fillId, suffix) {
+            const numValue = parseFloat(value);
+            config[key] = numValue;
+            document.getElementById(valueId).textContent = numValue + suffix;
+            
+            // Update fill width
+            const slider = document.getElementById(key === 'aimbot_fov' ? 'fovSlider' : 'smoothSlider');
+            const percent = ((numValue - slider.min) / (slider.max - slider.min)) * 100;
+            document.getElementById(fillId).style.width = percent + '%';
+            
+            console.log('Slider updated:', key, '=', numValue);
+        }
+
+        // Update status dot
+        function updateStatus(id, active) {
+            document.getElementById(id).classList.toggle('active', active);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial menu state
+            menuContainer.classList.add('visible');
+            updateStatus('menuStatus', true);
+            
+            console.log('S2M GUI Initialized');
+            console.log('Initial config:', config);
+        });
+
+        // Export config for external access
+        window.getConfig = () => config;
+        window.setConfig = (key, value) => {
+            config[key] = value;
+            // Update UI elements
+            const element = document.getElementById(key.replace(/_/g, ''));
+            if (element) {
+                if (element.type === 'checkbox') {
+                    element.checked = value;
+                } else {
+                    element.value = value;
+                }
+            }
+        };
+    </script>
+</body>
+</html>
