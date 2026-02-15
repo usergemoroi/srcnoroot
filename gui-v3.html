@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2M Mod Menu</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        :root {
+            --bg-primary: #0d0d0f;
+            --bg-secondary: #1a1a1f;
+            --bg-tertiary: #252529;
+            --accent-esp: #00d084;
+            --accent-aim: #ff4757;
+            --accent-misc: #3b82f6;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --border-color: #2a2a2e;
+            --hover-bg: #2d2d32;
+            --active-bg: #36363c;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0d0d0f 0%, #151519 50%, #0a0a0c 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Floating Toggle Button */
+        .fab-button {
+            position: fixed;
+            top: 120px;
+            left: 40px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(145deg, #1e1e24, #16161a);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-size: 22px;
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 10000;
+            box-shadow: 
+                0 4px 20px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 30px rgba(0,0,0,0.6),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            border-color: #3a3a40;
+        }
+
+        .fab-button:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        .fab-button.dragging {
+            opacity: 0.8;
+            cursor: grabbing;
+        }
+
+        /* Main Menu Window */
+        .menu-window {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            width: 420px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 
+                0 25px 80px rgba(0,0,0,0.8),
+                0 0 0 1px rgba(255,255,255,0.03);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .menu-window.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Window Header */
+        .window-header {
+            background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .window-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .window-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #2a2a30, #1e1e24);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .window-text h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .window-text span {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .control-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+
+        .control-btn:hover {
+            background: var(--hover-bg);
+            color: var(--text-primary);
+        }
+
+        .control-btn.close:hover {
+            background: rgba(255, 71, 87, 0.2);
+            color: var(--accent-aim);
+            border-color: var(--accent-aim);
+        }
+
+        /* Menu Content */
+        .menu-content {
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .menu-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .menu-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .menu-content::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding: 0 4px;
+        }
+
+        .section-icon {
+            width: 8px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .section-icon.esp { background: var(--accent-esp); }
+        .section-icon.aim { background: var(--accent-aim); }
+        .section-icon.misc { background: var(--accent-misc); }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-count {
+            margin-left: auto;
+            font-size: 11px;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Toggle Items */
+        .toggle-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .toggle-item:hover {
+            background: var(--hover-bg);
+            border-color: #3a3a40;
+            transform: translateX(2px);
+        }
+
+        .toggle-item.active {
+            background: linear-gradient(90deg, rgba(0, 208, 132, 0.1), transparent);
+            border-color: rgba(0, 208, 132, 0.3);
+        }
+
+        .toggle-item.active.aimbot-item {
+            background: linear-gradient(90deg, rgba(255, 71, 87, 0.1), transparent);
+            border-color: rgba(255, 71, 87, 0.3);
+        }
+
+        .toggle-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #4a4a50;
+            border-radius: 6px;
+            margin-right: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .toggle-item.active .toggle-checkbox {
+            background: var(--accent-esp);
+            border-color: var(--accent-esp);
+        }
+
+        .toggle-item.active.aimbot-item .toggle-checkbox {
+            background: var(--accent-aim);
+            border-color: var(--accent-aim);
+        }
+
+        .toggle-checkbox::after {
+            content: '';
+            width: 5px;
+            height: 9px;
+            border: solid #000;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg) translate(-1px, -1px);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .toggle-item.active .toggle-checkbox::after {
+            opacity: 1;
+        }
+
+        .toggle-info {
+            flex: 1;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .toggle-item.active .toggle-label {
+            color: var(--accent-esp);
+        }
+
+        .toggle-item.active.aimbot-item .toggle-label {
+            color: var(--accent-aim);
+        }
+
+        .toggle-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .toggle-key {
+            font-size: 11px;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-family: 'SF Mono', monospace;
+        }
+
+        /* Slider Control */
+        .slider-control {
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-top: 8px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .slider-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .slider-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-esp);
+            font-family: 'SF Mono', monospace;
+            background: var(--bg-secondary);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .slider-value.aim {
+            color: var(--accent-aim);
+        }
+
+        .slider-track {
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .slider-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-esp), #00b870);
+            border-radius: 3px;
+            transition: width 0.05s;
+        }
+
+        .slider-fill.aim {
+            background: linear-gradient(90deg, var(--accent-aim), #e03e4c);
+        }
+
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            cursor: grab;
+            transition: transform 0.1s;
+        }
+
+        .slider-thumb:active {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333;
+            transition: all 0.2s;
+        }
+
+        .status-dot.active {
+            background: var(--accent-esp);
+            box-shadow: 0 0 8px var(--accent-esp);
+        }
+
+        .status-dot.active.aim {
+            background: var(--accent-aim);
+            box-shadow: 0 0 8px var(--accent-aim);
+        }
+
+        /* Config Export */
+        .config-panel {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+        }
+
+        .config-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent-misc);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .config-output {
+            font-family: 'SF Mono', monospace;
+            font-size: 10px;
+            color: var(--text-secondary);
+            background: var(--bg-primary);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            max-height: 80px;
+            overflow-y: auto;
+            word-break: break-all;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status-dot.active {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Action Button -->
+    <button class="fab-button" id="fabBtn">M</button>
+
+    <!-- Main Menu Window -->
+    <div class="menu-window" id="menuWindow">
+        <!-- Window Header -->
+        <div class="window-header">
+            <div class="window-title">
+                <div class="window-icon">S</div>
+                <div class="window-text">
+                    <h1>S2M</h1>
+                    <span>Mod Menu v3.0</span>
+                </div>
+            </div>
+            <div class="window-controls">
+                <button class="control-btn" onclick="resetConfig()" title="Reset">↺</button>
+                <button class="control-btn close" onclick="toggleMenu()" title="Close">×</button>
+            </div>
+        </div>
+
+        <!-- Menu Content -->
+        <div class="menu-content">
+            <!-- ESP Section -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon esp"></div>
+                    <span class="section-title">ESP</span>
+                    <span class="section-count" id="espCount">0/5</span>
+                </div>
+                <div class="toggle-list">
+                    <label class="toggle-item" onclick="toggleItem(this, 'esp_enabled')">
+                        <div class="toggle-checkbox"></div>
+                        <div class="toggle-info">
+                            <span class="toggle-label">Enable ESP</span>
+                            <span class="toggle-desc">Wallhack visualization</span>
+                        </div>
+                        <span class="toggle-key">F1</span>
+                    </label>
+
+                    <label class="toggle-item" onclick="toggleItem(this, 'esp_box')">
+                        <div class="toggle-checkbox"></div>
+                        <div class="toggle-info">
+                            <span class="toggle-label">Box ESP</span>
+                            <span class="toggle-desc">2D bounding boxes</span>
+                        </div>
+                        <span class="toggle-key">F2</span>
+                    </label>
+
+                    <label class="toggle-item" onclick="toggleItem(this, 'esp_skeleton')">
+                        <div class="toggle-checkbox"></div>
+                        <div class="toggle-info">
+                            <span class="toggle-label">Skeleton</span>
+                            <span class="toggle-desc">Bone structure lines</span>
+                        </div>
+                        <span class="toggle-key">F3</span>
+                    </label>
+
+                    <label class="toggle-item" onclick="toggleItem(this, 'esp_health')">
+                        <div class="toggle-checkbox"></div>
+                        <div class="toggle-info">
+                            <span class="toggle-label">Health Bar</span>
+                            <span class="toggle-desc">HP visualization</span>
+                        </div>
+                        <span class="toggle-key">F4</span>
+                    </label>
+
+                    <label class="toggle-item" onclick="toggleItem(this, 'esp_distance')">
+                        <div class="toggle-checkbox"></div>
+                        <div class="toggle-info">
+                            <span class="toggle-label">Distance</span>
+                            <span class="toggle-desc">Show range in meters</span>
+                        </div>
+                        <span class="toggle-key">F5</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Aimbot Section -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon aim"></div>
+                    <span class="section-title">Aimbot</span>
+                    <span class="section-count" id="aimCount">0/4</span>
+                </div>
+                <div class="toggle-list">
+                    <label class="toggle-item aimbot-item" onclick="toggleItem(this, 'aimbot_enabled')">
+                        <div class="toggle-checkbox"></div>
+                        <div class="toggle-info">
+                            <span class="toggle-label">Enable Aimbot</span>
+                            <span class="toggle-desc">Auto-aim assistance</span>
+                        </div>
+                        <span class="toggle-key">F6</span>
+                    </label>
+
+                    <label class="toggle-item aimbot-item" onclick="toggleItem(this, 'aimbot_visible_only')">
+                        <div class="toggle-checkbox"></div>
+                        <div class="toggle-info">
+                            <span class="toggle-label">Visible Only</span>
+                            <span class="toggle-desc">Skip through walls</span>
+                        </div>
+                        <span class="toggle-key">F7</span>
+                    </label>
+
+                    <label class="toggle-item aimbot-item" onclick="toggleItem(this, 'aimbot_team_check')">
+                        <div class="toggle-checkbox"></div>
+                        <div class="toggle-info">
+                            <span class="toggle-label">Team Check</span>
+                            <span class="toggle-desc">Ignore teammates</span>
+                        </div>
+                        <span class="toggle-key">F8</span>
+                    </label>
+                </div>
+
+                <!-- FOV Slider -->
+                <div class="slider-control">
+                    <div class="slider-header">
+                        <span class="slider-name">FOV Radius</span>
+                        <span class="slider-value aim" id="fovValue">90°</span>
+                    </div>
+                    <div class="slider-track" onclick="sliderClick(event, 'aimbot_fov', 10, 180)">
+                        <div class="slider-fill aim" id="fovFill" style="width: 47%"></div>
+                        <div class="slider-thumb" id="fovThumb" style="left: 47%"></div>
+                    </div>
+                </div>
+
+                <!-- Smooth Slider -->
+                <div class="slider-control">
+                    <div class="slider-header">
+                        <span class="slider-name">Smoothing</span>
+                        <span class="slider-value aim" id="smoothValue">5.0</span>
+                    </div>
+                    <div class="slider-track" onclick="sliderClick(event, 'aimbot_smooth', 1, 20)">
+                        <div class="slider-fill aim" id="smoothFill" style="width: 21%"></div>
+                        <div class="slider-thumb" id="smoothThumb" style="left: 21%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Config Output -->
+            <div class="config-panel">
+                <div class="config-title">Live Config</div>
+                <div class="config-output" id="configOutput">{}</div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot" id="espStatus"></div>
+                <span>ESP</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot aim" id="aimStatus"></div>
+                <span>Aimbot</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot active" id="menuStatus"></div>
+                <span>Active</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration matching C++ ModConfig
+        const config = {
+            esp_enabled: false,
+            esp_box: false,
+            esp_skeleton: false,
+            esp_health: false,
+            esp_distance: false,
+            aimbot_enabled: false,
+            aimbot_visible_only: true,
+            aimbot_team_check: true,
+            aimbot_fov: 90,
+            aimbot_smooth: 5.0
+        };
+
+        // UI State
+        let menuVisible = true;
+        let dragOffset = { x: 0, y: 0 };
+        let isDragging = false;
+
+        // DOM Elements
+        const fabBtn = document.getElementById('fabBtn');
+        const menuWindow = document.getElementById('menuWindow');
+        const configOutput = document.getElementById('configOutput');
+
+        // Initialize
+        function init() {
+            updateConfigDisplay();
+            updateCounters();
+            menuWindow.classList.add('visible');
+            setupDrag();
+            setupKeyboard();
+        }
+
+        // Toggle Menu
+        function toggleMenu() {
+            menuVisible = !menuVisible;
+            menuWindow.classList.toggle('visible', menuVisible);
+            document.getElementById('menuStatus').classList.toggle('active', menuVisible);
+        }
+
+        fabBtn.addEventListener('click', () => {
+            if (!isDragging) toggleMenu();
+        });
+
+        // Toggle Item
+        function toggleItem(element, key) {
+            config[key] = !config[key];
+            element.classList.toggle('active', config[key]);
+            updateConfigDisplay();
+            updateCounters();
+            updateStatusIndicators();
+            
+            console.log(`[S2M] ${key} = ${config[key]}`);
+        }
+
+        // Slider Click
+        function sliderClick(event, key, min, max) {
+            const track = event.currentTarget;
+            const rect = track.getBoundingClientRect();
+            const percent = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+            const value = min + percent * (max - min);
+            
+            if (key === 'aimbot_fov') {
+                config.aimbot_fov = Math.round(value);
+                document.getElementById('fovValue').textContent = config.aimbot_fov + '°';
+                document.getElementById('fovFill').style.width = (percent * 100) + '%';
+                document.getElementById('fovThumb').style.left = (percent * 100) + '%';
+            } else {
+                config.aimbot_smooth = parseFloat(value.toFixed(1));
+                document.getElementById('smoothValue').textContent = config.aimbot_smooth.toFixed(1);
+                document.getElementById('smoothFill').style.width = (percent * 100) + '%';
+                document.getElementById('smoothThumb').style.left = (percent * 100) + '%';
+            }
+            
+            updateConfigDisplay();
+        }
+
+        // Update Display
+        function updateConfigDisplay() {
+            configOutput.textContent = JSON.stringify(config, null, 2);
+        }
+
+        // Update Counters
+        function updateCounters() {
+            const espTotal = 5;
+            const espActive = ['esp_enabled', 'esp_box', 'esp_skeleton', 'esp_health', 'esp_distance']
+                .filter(k => config[k]).length;
+            document.getElementById('espCount').textContent = `${espActive}/${espTotal}`;
+
+            const aimTotal = 4;
+            const aimActive = ['aimbot_enabled', 'aimbot_visible_only', 'aimbot_team_check']
+                .filter(k => config[k]).length;
+            document.getElementById('aimCount').textContent = `${aimActive}/${aimTotal}`;
+        }
+
+        // Update Status
+        function updateStatusIndicators() {
+            document.getElementById('espStatus').classList.toggle('active', config.esp_enabled);
+            document.getElementById('aimStatus').classList.toggle('active', config.aimbot_enabled);
+        }
+
+        // Reset Config
+        function resetConfig() {
+            Object.keys(config).forEach(k => {
+                config[k] = typeof config[k] === 'boolean' ? false : (k.includes('fov') ? 90 : 5.0);
+            });
+            config.aimbot_visible_only = true;
+            config.aimbot_team_check = true;
+            
+            document.querySelectorAll('.toggle-item').forEach(el => el.classList.remove('active'));
+            updateConfigDisplay();
+            updateCounters();
+            updateStatusIndicators();
+        }
+
+        // Drag Functionality
+        function setupDrag() {
+            fabBtn.addEventListener('mousedown', (e) => {
+                isDragging = false;
+                dragOffset.x = e.clientX - fabBtn.offsetLeft;
+                dragOffset.y = e.clientY - fabBtn.offsetTop;
+                
+                const moveHandler = (e) => {
+                    isDragging = true;
+                    fabBtn.classList.add('dragging');
+                    fabBtn.style.left = (e.clientX - dragOffset.x) + 'px';
+                    fabBtn.style.top = (e.clientY - dragOffset.y) + 'px';
+                };
+                
+                const upHandler = () => {
+                    fabBtn.classList.remove('dragging');
+                    document.removeEventListener('mousemove', moveHandler);
+                    document.removeEventListener('mouseup', upHandler);
+                    setTimeout(() => isDragging = false, 10);
+                };
+                
+                document.addEventListener('mousemove', moveHandler);
+                document.addEventListener('mouseup', upHandler);
+            });
+        }
+
+        // Keyboard Shortcuts
+        function setupKeyboard() {
+            const keys = {
+                'F1': 'esp_enabled',
+                'F2': 'esp_box',
+                'F3': 'esp_skeleton',
+                'F4': 'esp_health',
+                'F5': 'esp_distance',
+                'F6': 'aimbot_enabled',
+                'F7': 'aimbot_visible_only',
+                'F8': 'aimbot_team_check'
+            };
+            
+            document.addEventListener('keydown', (e) => {
+                if (keys[e.key]) {
+                    e.preventDefault();
+                    const key = keys[e.key];
+                    config[key] = !config[key];
+                    updateConfigDisplay();
+                    updateCounters();
+                    updateStatusIndicators();
+                }
+                if (e.key === 'Insert') {
+                    toggleMenu();
+                }
+            });
+        }
+
+        // Public API
+        window.S2M = {
+            getConfig: () => config,
+            setConfig: (key, value) => {
+                config[key] = value;
+                updateConfigDisplay();
+            },
+            toggle: toggleMenu
+        };
+
+        // Start
+        init();
+        console.log('[S2M] GUI v3.0 initialized');
+    </script>
+</body>
+</html>
