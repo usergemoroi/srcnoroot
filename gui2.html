@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2M - C++ GUI Visual Reference</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        /* Floating Menu Button (when menu is hidden) */
+        .menu-btn {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(45, 45, 45, 0.95);
+            border: 3px solid #00ff88;
+            border-radius: 8px;
+            color: #00ff88;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: move;
+            z-index: 1000;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+        }
+
+        .menu-btn:hover {
+            background: rgba(55, 55, 55, 0.95);
+            border-color: #00ffaa;
+            box-shadow: 0 6px 16px rgba(0, 255, 136, 0.5);
+        }
+
+        .menu-btn.hidden {
+            display: none;
+        }
+
+        /* Main Menu Container */
+        .menu-container {
+            position: fixed;
+            top: 100px;
+            left: 50px;
+            width: 350px;
+            background: rgba(26, 26, 26, 0.98);
+            border: 3px solid #00ff88;
+            border-radius: 8px;
+            padding: 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            z-index: 999;
+            overflow: hidden;
+        }
+
+        .menu-container.hidden {
+            display: none;
+        }
+
+        /* Menu Header (draggable) */
+        .menu-header {
+            background: rgba(45, 45, 45, 1);
+            padding: 15px 20px;
+            border-bottom: 2px solid #00ff88;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .menu-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 2px;
+        }
+
+        .close-btn {
+            width: 24px;
+            height: 24px;
+            background: transparent;
+            border: 2px solid #ff4757;
+            border-radius: 4px;
+            color: #ff4757;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #ff4757;
+            color: #fff;
+        }
+
+        /* Menu Content */
+        .menu-content {
+            padding: 10px;
+            max-height: 540px;
+            overflow-y: auto;
+        }
+
+        /* Section Header */
+        .section-header {
+            background: linear-gradient(90deg, var(--section-color), transparent);
+            padding: 8px 15px;
+            margin: 10px 0;
+            border-left: 4px solid var(--section-color);
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-header.esp {
+            --section-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .section-header.aimbot {
+            --section-color: #ff4757;
+            color: #ff4757;
+        }
+
+        /* Toggle Item */
+        .toggle-item {
+            background: rgba(61, 61, 61, 0.6);
+            border: 2px solid rgba(68, 68, 68, 0.8);
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-item:hover {
+            background: rgba(77, 77, 77, 0.7);
+            border-color: rgba(100, 100, 100, 0.9);
+        }
+
+        .toggle-item.active {
+            background: linear-gradient(90deg, var(--toggle-color), rgba(61, 61, 61, 0.8));
+            border-color: var(--toggle-color);
+        }
+
+        .toggle-item.esp.active {
+            --toggle-color: #00ff88;
+        }
+
+        .toggle-item.aimbot.active {
+            --toggle-color: #ff4757;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .toggle-switch {
+            width: 40px;
+            height: 20px;
+            background: rgba(100, 100, 100, 0.5);
+            border-radius: 10px;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .toggle-item.active .toggle-switch {
+            background: var(--toggle-color);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .toggle-item.active .toggle-switch::after {
+            left: 22px;
+        }
+
+        /* Slider Item */
+        .slider-item {
+            background: rgba(61, 61, 61, 0.6);
+            border: 2px solid rgba(68, 68, 68, 0.8);
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin: 10px 0;
+        }
+
+        .slider-label {
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .slider-value {
+            color: var(--slider-color);
+            font-weight: bold;
+        }
+
+        .slider-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(100, 100, 100, 0.5);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .slider-fill {
+            height: 100%;
+            background: var(--slider-color);
+            border-radius: 4px;
+            position: relative;
+            transition: width 0.1s;
+        }
+
+        .slider-thumb {
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border: 2px solid var(--slider-color);
+            border-radius: 50%;
+            cursor: grab;
+        }
+
+        .slider-thumb:active {
+            cursor: grabbing;
+        }
+
+        .slider-item.aimbot {
+            --slider-color: #ff4757;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: rgba(20, 20, 20, 0.95);
+            padding: 10px 15px;
+            border-top: 2px solid rgba(68, 68, 68, 0.8);
+            display: flex;
+            gap: 15px;
+            font-size: 11px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+        }
+
+        .status-dot.active {
+            background: var(--status-color);
+            box-shadow: 0 0 8px var(--status-color);
+        }
+
+        .status-item.esp .status-dot.active {
+            --status-color: #00ff88;
+        }
+
+        .status-item.aimbot .status-dot.active {
+            --status-color: #ff4757;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Menu Button (shown when menu is hidden) -->
+    <div class="menu-btn" id="menuBtn">M</div>
+
+    <!-- Main Menu Container -->
+    <div class="menu-container" id="menuContainer">
+        <div class="menu-header" id="menuHeader">
+            <div class="menu-title">S2M v1.0</div>
+            <div class="close-btn" id="closeBtn">×</div>
+        </div>
+
+        <div class="menu-content">
+            <!-- ESP Section -->
+            <div class="section-header esp">ESP FEATURES</div>
+            
+            <div class="toggle-item esp" data-config="esp_enabled">
+                <div class="toggle-label">ESP Enabled</div>
+                <div class="toggle-switch"></div>
+            </div>
+
+            <div class="toggle-item esp" data-config="esp_box">
+                <div class="toggle-label">ESP Box</div>
+                <div class="toggle-switch"></div>
+            </div>
+
+            <div class="toggle-item esp" data-config="esp_skeleton">
+                <div class="toggle-label">ESP Skeleton</div>
+                <div class="toggle-switch"></div>
+            </div>
+
+            <div class="toggle-item esp" data-config="esp_health">
+                <div class="toggle-label">ESP Health Bar</div>
+                <div class="toggle-switch"></div>
+            </div>
+
+            <!-- Aimbot Section -->
+            <div class="section-header aimbot">AIMBOT FEATURES</div>
+            
+            <div class="toggle-item aimbot" data-config="aimbot_enabled">
+                <div class="toggle-label">Aimbot Enabled</div>
+                <div class="toggle-switch"></div>
+            </div>
+
+            <div class="toggle-item aimbot" data-config="aimbot_visible_only">
+                <div class="toggle-label">Visible Only</div>
+                <div class="toggle-switch"></div>
+            </div>
+
+            <div class="toggle-item aimbot" data-config="aimbot_team_check">
+                <div class="toggle-label">Team Check</div>
+                <div class="toggle-switch"></div>
+            </div>
+
+            <div class="slider-item aimbot" data-config="aimbot_fov">
+                <div class="slider-label">
+                    <span>Aimbot FOV</span>
+                    <span class="slider-value">90°</span>
+                </div>
+                <div class="slider-track">
+                    <div class="slider-fill" style="width: 47%;">
+                        <div class="slider-thumb"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slider-item aimbot" data-config="aimbot_smooth">
+                <div class="slider-label">
+                    <span>Smoothing</span>
+                    <span class="slider-value">5.0</span>
+                </div>
+                <div class="slider-track">
+                    <div class="slider-fill" style="width: 21%;">
+                        <div class="slider-thumb"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item esp">
+                <div class="status-dot" data-status="esp"></div>
+                <span>ESP</span>
+            </div>
+            <div class="status-item aimbot">
+                <div class="status-dot" data-status="aimbot"></div>
+                <span>AIMBOT</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Config state matching C++ ModConfig
+        const config = {
+            esp_enabled: false,
+            esp_box: false,
+            esp_skeleton: false,
+            esp_health: false,
+            aimbot_enabled: false,
+            aimbot_visible_only: true,
+            aimbot_team_check: true,
+            aimbot_fov: 90.0,
+            aimbot_smooth: 5.0,
+            menu_visible: true
+        };
+
+        // UI Elements
+        const menuBtn = document.getElementById('menuBtn');
+        const menuContainer = document.getElementById('menuContainer');
+        const menuHeader = document.getElementById('menuHeader');
+        const closeBtn = document.getElementById('closeBtn');
+
+        // Toggle menu visibility
+        function toggleMenu() {
+            config.menu_visible = !config.menu_visible;
+            if (config.menu_visible) {
+                menuContainer.classList.remove('hidden');
+                menuBtn.classList.add('hidden');
+            } else {
+                menuContainer.classList.add('hidden');
+                menuBtn.classList.remove('hidden');
+            }
+        }
+
+        menuBtn.addEventListener('click', toggleMenu);
+        closeBtn.addEventListener('click', toggleMenu);
+
+        // Toggle switches
+        document.querySelectorAll('.toggle-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const configKey = item.getAttribute('data-config');
+                config[configKey] = !config[configKey];
+                
+                if (config[configKey]) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+                
+                updateStatus();
+            });
+        });
+
+        // Sliders
+        document.querySelectorAll('.slider-item').forEach(item => {
+            const track = item.querySelector('.slider-track');
+            const fill = item.querySelector('.slider-fill');
+            const valueSpan = item.querySelector('.slider-value');
+            const configKey = item.getAttribute('data-config');
+            
+            let isDragging = false;
+            
+            const updateSlider = (e) => {
+                const rect = track.getBoundingClientRect();
+                const x = e.clientX || (e.touches && e.touches[0].clientX);
+                let percent = (x - rect.left) / rect.width;
+                percent = Math.max(0, Math.min(1, percent));
+                
+                let value;
+                if (configKey === 'aimbot_fov') {
+                    value = 10 + percent * 170; // 10-180
+                    valueSpan.textContent = Math.round(value) + '°';
+                } else if (configKey === 'aimbot_smooth') {
+                    value = 1 + percent * 19; // 1-20
+                    valueSpan.textContent = value.toFixed(1);
+                }
+                
+                config[configKey] = value;
+                fill.style.width = (percent * 100) + '%';
+            };
+            
+            track.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                updateSlider(e);
+            });
+            
+            track.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                updateSlider(e);
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) updateSlider(e);
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (isDragging) updateSlider(e);
+            });
+            
+            document.addEventListener('mouseup', () => isDragging = false);
+            document.addEventListener('touchend', () => isDragging = false);
+        });
+
+        // Update status indicators
+        function updateStatus() {
+            const espStatus = document.querySelector('[data-status="esp"]');
+            const aimbotStatus = document.querySelector('[data-status="aimbot"]');
+            
+            if (config.esp_enabled) {
+                espStatus.classList.add('active');
+            } else {
+                espStatus.classList.remove('active');
+            }
+            
+            if (config.aimbot_enabled) {
+                aimbotStatus.classList.add('active');
+            } else {
+                aimbotStatus.classList.remove('active');
+            }
+        }
+
+        // Draggable menu
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        menuHeader.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - menuContainer.offsetLeft;
+            offsetY = e.clientY - menuContainer.offsetTop;
+        });
+
+        menuHeader.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            const touch = e.touches[0];
+            offsetX = touch.clientX - menuContainer.offsetLeft;
+            offsetY = touch.clientY - menuContainer.offsetTop;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                menuContainer.style.left = (e.clientX - offsetX) + 'px';
+                menuContainer.style.top = (e.clientY - offsetY) + 'px';
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const touch = e.touches[0];
+                menuContainer.style.left = (touch.clientX - offsetX) + 'px';
+                menuContainer.style.top = (touch.clientY - offsetY) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => isDragging = false);
+        document.addEventListener('touchend', () => isDragging = false);
+
+        // Initial update
+        updateStatus();
+    </script>
+</body>
+</html>
